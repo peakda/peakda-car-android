@@ -10,3 +10,9 @@
 local.properties
 /.idea/
 credentials.gradle
+
+# release signing (never commit)
+*.jks
+*.keystore
+keystore.properties
+
