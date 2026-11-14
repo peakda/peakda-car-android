@@ -26,8 +26,8 @@ class MainActivity : ComponentActivity() {
         options.value = readOptions(intent)
         setContent {
             val (start, theme) = options.value
-            // 디버그 빌드에서는 큰 화면(에뮬레이터)에서도 628x855 창 크기로 보여준다.
-            PeakdaApp(start = start, emulateWindow = BuildConfig.DEBUG, initialTheme = theme)
+            // 큰 화면(에뮬레이터 앱 영역)에서도 Figma 기준 628x855 창 크기로 보여준다(release 포함).
+            PeakdaApp(start = start, emulateWindow = true, initialTheme = theme)
         }
     }
 
