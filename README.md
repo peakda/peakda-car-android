@@ -26,7 +26,19 @@
 | 15–17 | 로그인 · 설정 · 지역 선택 | 로그인은 선택 사항, 라이트/다크 테마 전환 |
 | 18–21 | 예외 상태 · 자동 기록 | 정보 없음, 통신 오류, 내비 연결 실패, 출발 시 자동 기록 |
 
-> 현재 버전은 UI 프로토타입입니다. 명소·절정도 정보는 앱에 포함된 샘플 데이터(충남 아산 은행나무길 등)를 사용합니다.
+## 구현 범위
+
+| 기능 | 상태 |
+| --- | --- |
+| 경유지로 추가 | ✅ Pleos NaviHelper SDK `addWaypoint`로 기본 내비에 실제 요청. 안내 중인 길이 없으면 `requestRoute`로 목적지 안내 |
+| 목적지로 설정 | ✅ `requestRoute`로 기본 내비에 실제 길 안내 요청 |
+| 내비 결과 처리 | ✅ `onWaypointChanged`·`onRouteStarted`로 성공 확인, `onError`면 "내비 연결 실패" 화면 |
+| 화면 21개 · 라이트/다크 테마 | ✅ Figma 디자인 기준 |
+| 명소·절정도 정보, 음성 검색, 로그인, 기록 저장 | 샘플 데이터·화면 흐름만 구현 (서버 연동 없음) |
+
+명소 5곳(충남 아산 은행나무길 등)의 좌표는 실제 위치 기준 대략 값입니다.
+
+내비 연동 코드는 [`peakda/navi/PeakdaNavi.kt`](app/src/main/java/ai/pleos/playground/navidevapp/peakda/navi/PeakdaNavi.kt)에 있습니다.
 
 ## 실행 방법
 
@@ -37,7 +49,10 @@
    ```bash
    adb install -r apk/PEAKDA_PEAKDACar_release.apk
    ```
-3. 앱 목록에서 **PEAKDA Car**를 실행합니다.
+3. **내비게이션 앱을 한 번 열어** 지도가 뜨는지 확인합니다. 에뮬레이터를 막 켠 직후에는 내비가 준비 중이라 경로 요청을 받지 않습니다.
+4. 앱 목록에서 **PEAKDA Car**를 실행합니다.
+5. 홈 → `안내시작` 또는 명소 상세 → `경유지로 추가` / `목적지로 설정`을 누르면 내비에 길 안내가 요청됩니다.
+   에뮬레이터 내비는 경로 탐색에 20~30초, 경유지 추가 후 경로 선택까지 1분 정도 걸립니다.
    ```bash
    # 또는 명령으로 실행
    adb shell am start -n ai.pleos.playground.sdk.navidevapp/ai.pleos.playground.navidevapp.MainActivity
@@ -98,6 +113,7 @@ app/src/main/java/ai/pleos/playground/navidevapp/
 └── peakda/
     ├── PeakdaApp.kt         # 화면 라우팅
     ├── PeakdaState.kt       # 화면 목록(21개)과 상태
+    ├── navi/PeakdaNavi.kt   # Pleos NaviHelper SDK 연동(경유지 추가·목적지 설정)
     ├── components/          # 공통 UI 컴포넌트, 아이콘
     ├── screens/             # 홈·상세·기록·예외 상태 등 화면
     └── theme/               # 색상, 글꼴(Pretendard·Asta Sans), 라이트/다크 테마

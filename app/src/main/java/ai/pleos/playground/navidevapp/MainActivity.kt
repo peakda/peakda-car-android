@@ -3,6 +3,7 @@ package ai.pleos.playground.navidevapp
 import ai.pleos.playground.navidevapp.peakda.PeakdaApp
 import ai.pleos.playground.navidevapp.peakda.Route
 import ai.pleos.playground.navidevapp.peakda.StartOptions
+import ai.pleos.playground.navidevapp.peakda.navi.PeakdaNavi
 import ai.pleos.playground.navidevapp.peakda.theme.ThemeMode
 import android.content.Intent
 import android.os.Bundle
@@ -24,12 +25,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         options.value = readOptions(intent)
+        navi.connect()
         setContent {
             val (start, theme) = options.value
             // 큰 화면(에뮬레이터 앱 영역)에서도 Figma 기준 628x855 창 크기로 보여준다(release 포함).
-            PeakdaApp(start = start, emulateWindow = true, initialTheme = theme)
+            PeakdaApp(start = start, emulateWindow = true, initialTheme = theme, navi = navi)
         }
     }
+
+    override fun onDestroy() {
+        navi.release()
+        super.onDestroy()
+    }
+
+    /** 경유지 추가·목적지 설정을 기본 내비 앱에 요청한다(Pleos NaviHelper SDK). */
+    private val navi by lazy { PeakdaNavi(this) }
 
     /** 검증 스크립트가 앱을 다시 띄우지 않고 화면만 바꿀 수 있게 한다(singleTop). */
     override fun onNewIntent(intent: Intent) {

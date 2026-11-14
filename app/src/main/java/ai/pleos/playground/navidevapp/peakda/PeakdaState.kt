@@ -1,5 +1,8 @@
 package ai.pleos.playground.navidevapp.peakda
 
+import ai.pleos.playground.navidevapp.peakda.navi.PeakdaNavi
+import ai.pleos.playground.navidevapp.peakda.screens.Dummy
+import ai.pleos.playground.navidevapp.peakda.screens.Place
 import ai.pleos.playground.navidevapp.peakda.theme.ThemeMode
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -36,10 +39,26 @@ enum class Route(val id: String, val label: String) {
     }
 }
 
-/** 화면 이동과 더미 상태만 가진다(기능 연동 없음). */
+/**
+ * 화면 이동과 화면 상태를 가진다.
+ * 명소 정보는 샘플 데이터이고, 경유지 추가·목적지 설정은 [navi] 로 실제 내비에 요청한다.
+ */
 class PeakdaState(start: Route = Route.Home) {
     val stack = mutableStateListOf(start)
     val current: Route get() = stack.last()
+
+    /** 내비 연동(Pleos NaviHelper SDK). 미리보기·테스트에서는 null. */
+    var navi: PeakdaNavi? = null
+    /** 내비 요청을 보내고 응답을 기다리는 중 */
+    var naviBusy by mutableStateOf(false)
+
+    /** 상세·경유지 확인 화면에 보여 줄 명소 */
+    var selected by mutableStateOf(Dummy.gongseri)
+        private set
+
+    fun select(place: Place) {
+        selected = place
+    }
 
     var themeMode by mutableStateOf(ThemeMode.System)
     /** 검증용 딥링크(--es theme)로 강제한 모드. 설정 값(themeMode)과 따로 둔다. */

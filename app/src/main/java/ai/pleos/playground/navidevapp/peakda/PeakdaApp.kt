@@ -3,6 +3,7 @@ package ai.pleos.playground.navidevapp.peakda
 import ai.pleos.playground.navidevapp.peakda.components.DepthHeader
 import ai.pleos.playground.navidevapp.peakda.components.WindowFrame
 import ai.pleos.playground.navidevapp.peakda.components.peakdaClick
+import ai.pleos.playground.navidevapp.peakda.navi.PeakdaNavi
 import ai.pleos.playground.navidevapp.peakda.screens.AutoRecordScreen
 import ai.pleos.playground.navidevapp.peakda.screens.CalendarScreen
 import ai.pleos.playground.navidevapp.peakda.screens.CompareScreen
@@ -62,9 +63,15 @@ data class StartOptions(
 )
 
 @Composable
-fun PeakdaApp(start: StartOptions, emulateWindow: Boolean, initialTheme: ai.pleos.playground.navidevapp.peakda.theme.ThemeMode) {
+fun PeakdaApp(
+    start: StartOptions,
+    emulateWindow: Boolean,
+    initialTheme: ai.pleos.playground.navidevapp.peakda.theme.ThemeMode,
+    navi: PeakdaNavi? = null,
+) {
     val s = remember(start, initialTheme) {
         PeakdaState(start.route).apply {
+            this.navi = navi
             debugTheme = initialTheme.takeIf { it != ai.pleos.playground.navidevapp.peakda.theme.ThemeMode.System }
             keepToast = start.fromDeepLink
             applyVariant(start)

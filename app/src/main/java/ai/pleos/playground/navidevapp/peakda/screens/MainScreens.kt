@@ -27,6 +27,8 @@ import ai.pleos.playground.navidevapp.peakda.components.peakdaClick
 import ai.pleos.playground.navidevapp.peakda.components.scrim
 import ai.pleos.playground.navidevapp.peakda.components.softCard
 import ai.pleos.playground.navidevapp.peakda.components.strokeBox
+import ai.pleos.playground.navidevapp.peakda.navi.NaviPlace
+import ai.pleos.playground.navidevapp.peakda.navi.NaviResult
 import ai.pleos.playground.navidevapp.peakda.theme.Peakda
 import ai.pleos.playground.navidevapp.peakda.theme.PeakdaType
 import androidx.compose.foundation.background
@@ -67,14 +69,35 @@ data class Place(
     val photo: Int,
     val level: PeakLevel,
     val minutes: Int,
-)
+    /** 내비 안내용 좌표·주소 (대략 값) */
+    val latitude: Double,
+    val longitude: Double,
+    val address: String,
+) {
+    fun toNaviPlace() = NaviPlace(name, latitude, longitude, address)
+}
 
 object Dummy {
-    val gongseri = Place("공세리 성당 은행나무길", "충남 아산시", R.drawable.photo_gongseri, PeakLevel.Peak, 18)
-    val hyeonchungsa = Place("현충사 은행나무길", "충남 아산시", R.drawable.photo_hyeonchungsa, PeakLevel.Starting, 24)
-    val gokgyocheon = Place("곡교천 은행나무길", "충남 아산시", R.drawable.photo_gongseri, PeakLevel.Early, 31)
-    val oeam = Place("외암민속마을", "충남 아산시", R.drawable.photo_hyeonchungsa, PeakLevel.Starting, 35)
-    val shinjeongho = Place("신정호 은행나무길", "충남 아산시", R.drawable.photo_gongseri, PeakLevel.Early, 40)
+    val gongseri = Place(
+        "공세리 성당 은행나무길", "충남 아산시", R.drawable.photo_gongseri, PeakLevel.Peak, 18,
+        36.8835, 126.9131, "충남 아산시 인주면 공세리성당길 10",
+    )
+    val hyeonchungsa = Place(
+        "현충사 은행나무길", "충남 아산시", R.drawable.photo_hyeonchungsa, PeakLevel.Starting, 24,
+        36.8127, 127.0266, "충남 아산시 염치읍 현충사길 126",
+    )
+    val gokgyocheon = Place(
+        "곡교천 은행나무길", "충남 아산시", R.drawable.photo_gongseri, PeakLevel.Early, 31,
+        36.7963, 127.0322, "충남 아산시 염치읍 백암리",
+    )
+    val oeam = Place(
+        "외암민속마을", "충남 아산시", R.drawable.photo_hyeonchungsa, PeakLevel.Starting, 35,
+        36.7285, 127.0175, "충남 아산시 송악면 외암민속길 5",
+    )
+    val shinjeongho = Place(
+        "신정호 은행나무길", "충남 아산시", R.drawable.photo_gongseri, PeakLevel.Early, 40,
+        36.7684, 126.9925, "충남 아산시 신정로 616",
+    )
     val candidates = listOf(gongseri, hyeonchungsa, gokgyocheon, oeam, shinjeongho)
 }
 
@@ -84,7 +107,7 @@ object Dummy {
 fun HomeScreen(s: PeakdaState) {
     val c = Peakda.colors
     val p = Dummy.gongseri
-    WindowFrame {
+    WindowFrame(overlay = { s.toast?.let { PeakdaToast(it) } }) {
         HomeHeader(onMenu = { s.go(Route.Settings) }, onLogoLongPress = { s.go(Route.DevList) })
         // 추천 카드 (radius 28, 여백 20, 간격 14)
         Column(
@@ -115,8 +138,8 @@ fun HomeScreen(s: PeakdaState) {
             Text(p.name, style = PeakdaType.cardTitle, color = c.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             IconText(PeakdaIcons.Clock, "${p.minutes}분", PeakdaType.meta, c.textSecondary)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                PeakdaButton("자세히", { s.go(Route.Detail) }, Modifier.weight(1f), ButtonType.Outline)
-                PeakdaButton("안내시작", { s.go(Route.Confirm) }, Modifier.weight(1f), ButtonType.Primary)
+                PeakdaButton("자세히", { s.select(p); s.go(Route.Detail) }, Modifier.weight(1f), ButtonType.Outline)
+                PeakdaButton("안내시작", { s.select(p); s.go(Route.Confirm) }, Modifier.weight(1f), ButtonType.Primary)
             }
         }
         // 섹션 헤더
@@ -131,7 +154,7 @@ fun HomeScreen(s: PeakdaState) {
             PillLink("후보 3곳 비교") { s.go(Route.Compare) }
         }
         val o = Dummy.hyeonchungsa
-        PlaceListRow(o.photo, o.name, o.level, o.minutes) { s.go(Route.Detail) }
+        PlaceListRow(o.photo, o.name, o.level, o.minutes) { s.select(o); s.go(Route.Detail) }
     }
 }
 
@@ -168,7 +191,7 @@ fun CompareScreen(s: PeakdaState) {
                     rank = page * 3 + i + 1, photo = p.photo, title = p.name, level = p.level,
                     minutes = p.minutes, showFlower = true,
                     modifier = Modifier.width(552.dp).weight(1f),
-                ) { s.go(Route.Detail) }
+                ) { s.select(p); s.go(Route.Detail) }
             }
             repeat(3 - pageItems.size) { Spacer(Modifier.weight(1f)) }
         }
@@ -188,7 +211,7 @@ fun CompareScreen(s: PeakdaState) {
 @Composable
 fun DetailScreen(s: PeakdaState) {
     val c = Peakda.colors
-    val p = Dummy.gongseri
+    val p = s.selected
     WindowFrame(overlay = { s.toast?.let { PeakdaToast(it) } }) {
         DepthHeader("명소 상세", onBack = s::back, showMenu = true, pleosTitle = false)
         // 히어로
@@ -232,7 +255,7 @@ fun DetailScreen(s: PeakdaState) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile(PeakdaIcons.Users, "9/12", "방문자 절정", Modifier.weight(1f))
             StatTile(PeakdaIcons.Sun, "14°", "맑음", Modifier.weight(1f))
-            StatTile(PeakdaIcons.Car, "18분", "차로", Modifier.weight(1f))
+            StatTile(PeakdaIcons.Car, "${p.minutes}분", "차로", Modifier.weight(1f))
         }
         // 방문자 기록
         Row(
@@ -320,8 +343,22 @@ fun VisitRecordRow(photo: Int, who: String, memo: String, level: PeakLevel) {
 @Composable
 fun ConfirmScreen(s: PeakdaState) {
     val c = Peakda.colors
+    val p = s.selected
+    val busy = s.naviBusy
+    fun handle(result: NaviResult) {
+        s.naviBusy = false
+        when (result) {
+            NaviResult.WaypointAdded -> { s.home(); s.showToast("경유지로 추가했어요") }
+            is NaviResult.RouteStarted -> {
+                s.home()
+                s.showToast(if (result.fromWaypoint) "안내 중인 길이 없어 목적지로 안내해요" else "길 안내를 시작했어요")
+            }
+            NaviResult.Sent -> { s.home(); s.showToast("내비에 보냈어요. 내비를 확인해 주세요") }
+            is NaviResult.Failed -> s.go(Route.NaviFail)
+        }
+    }
     WindowFrame(insideStroke = false) {
-        DepthHeader(Dummy.gongseri.name, onBack = s::back)
+        DepthHeader(p.name, onBack = s::back)
         Spacer(Modifier.height(10.dp))
         val shape = RoundedCornerShape(28.dp)
         Column(
@@ -336,9 +373,25 @@ fun ConfirmScreen(s: PeakdaState) {
             Text("길 안내에 어떻게 추가할까요?", style = PeakdaType.titleSmallBold, color = c.textMain)
             Text("지금 가는 길에 들르거나, 새 목적지로 바꿀 수 있어요.", style = PeakdaType.bodySmall, color = c.textMainSecondary)
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                PeakdaButton("경유지로 추가", s::home, Modifier.fillMaxWidth(), ButtonType.Primary, ButtonSize.Lg)
-                PeakdaButton("목적지로 설정", s::home, Modifier.fillMaxWidth(), ButtonType.Outline)
-                PeakdaButton("취소", s::back, Modifier.fillMaxWidth(), ButtonType.Outline)
+                PeakdaButton(
+                    if (busy) "내비에 보내는 중…" else "경유지로 추가",
+                    {
+                        val navi = s.navi ?: return@PeakdaButton s.go(Route.NaviFail)
+                        s.naviBusy = true
+                        navi.addWaypoint(p.toNaviPlace(), ::handle)
+                    },
+                    Modifier.fillMaxWidth(), ButtonType.Primary, ButtonSize.Lg, enabled = !busy,
+                )
+                PeakdaButton(
+                    "목적지로 설정",
+                    {
+                        val navi = s.navi ?: return@PeakdaButton s.go(Route.NaviFail)
+                        s.naviBusy = true
+                        navi.setDestination(p.toNaviPlace(), ::handle)
+                    },
+                    Modifier.fillMaxWidth(), ButtonType.Outline, enabled = !busy,
+                )
+                PeakdaButton("취소", s::back, Modifier.fillMaxWidth(), ButtonType.Outline, enabled = !busy)
             }
         }
         Fill()
