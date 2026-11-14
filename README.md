@@ -78,7 +78,7 @@ adb shell am start -n ai.pleos.playground.sdk.navidevapp/ai.pleos.playground.nav
 | 에뮬레이터 | **Pleos Connect v2.1.0** (`RELEASE.release_connect_v2.1.0`) |
 | Android | Android 14 (API 34), Android Automotive, x86_64 |
 | 화면 규격 | 1920 × 1080, density 160 (AVD 기본 1024 × 768 `automotive_1024p_landscape`, 시스템 오버라이드 1920 × 1080) |
-| 앱 표시 영역 | 화면 오른쪽 앱 영역 약 1255 × 850 (디자인 기준은 Figma 628 × 855, 영역에 맞춰 늘어남) |
+| 앱 표시 영역 | Figma 기준 628 × 855 창을 화면 오른쪽 앱 영역 가운데에 표시 (높이가 모자라면 비율 유지 축소) |
 | minSdk / targetSdk | 33 / 35 |
 | 빌드 도구 | Android Gradle Plugin 8.8.0, Gradle 8.10.2, Kotlin 1.9.22, JDK 17 이상 |
 | UI | Jetpack Compose (BOM 2024.04.01), Hilt 2.51.1 |
